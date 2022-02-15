@@ -24,9 +24,7 @@ class CliDispatcher extends Command
             echo "Command undefined '$cmd'!\n";
             exit(255);
         }
-        phore_di_call($command->commands[$cmd], $command->app, [
-            "argv" => $argv
-        ]);
+        $command->runCommand($cmd, $argv);
         echo "\n";
     }
 }

@@ -12,15 +12,87 @@ class Command
         protected BraceApp $app
     ){
         $this->commands["help"] = fn() => PredefinedCommands::PrintHelp();
+        $this->commands["scheduler"] = fn() => PredefinedCommands::Scheduler($app, $this);
     }
 
-    public function addCommand(string $name, callable $fn)
+    /**
+     * Add a command to be run via brace shell
+     *
+     * brace <commandName>
+     *
+     * @param string $commandName
+     * @param callable $fn
+     * @return void
+     */
+    public function addCommand(string $commandName, callable $fn)
     {
-        if (isset ($this->commands[$name]))
-            throw new \InvalidArgumentException("Command '$name' is already defined");
-        if ( ! ctype_alnum($name))
-            throw new \InvalidArgumentException("Invalid Command name '$name' must be alphanumeric");
-        $this->commands[$name] = $fn;
+        if (isset ($this->commands[$commandName]))
+            throw new \InvalidArgumentException("Command '$commandName' is already defined");
+        if ( ! ctype_alnum($commandName))
+            throw new \InvalidArgumentException("Invalid Command name '$commandName' must be alphanumeric");
+        $this->commands[$commandName] = $fn;
+    }
+
+    /**
+     * Run the command from within the webapp
+     *
+     * @param string $commandName
+     * @param array $argv
+     * @param bool $returnOutput
+     * @return string|null
+     * @throws \Phore\Di\Container\DiUnresolvableInternalException
+     */
+    public function runCommand(string $commandName, array $argv=[], bool $returnOutput=false) : string|null
+    {
+        if ( ! isset($this->commands[$commandName]))
+            throw new \InvalidArgumentException("No command with commandName '$commandName' defined");
+
+        try {
+            if ($returnOutput)
+                ob_start();
+
+            phore_di_call($this->commands[$commandName], $this->app, [
+                "argv" => $argv
+            ]);
+
+            if ($returnOutput)
+                return ob_get_clean();
+        } catch (\Exception $e) {
+            if ($returnOutput)
+                ob_get_clean();
+            throw $e;
+        } catch (\Error $e) {
+            if ($returnOutput)
+                ob_get_clean();
+            throw $e;
+        }
+        return null;
+    }
+
+
+    protected $interval = [];
+
+    /**
+     * Schedule the command for daily execution on 00:00:00
+     * Will run fist after given interval
+     *
+     * brace scheduler must be executed
+     *
+     * @param string $commandName
+     * @param bool $resumeOnError
+     * @return void
+     */
+    public function addInterval(int $interval, string $commandName, array $argv=[], bool $resumeOnError = false)
+    {
+        if ( ! isset($this->commands[$commandName]))
+            throw new \InvalidArgumentException("No command with commandName '$commandName' defined");
+        $this->interval[] = [
+            "lastRun" => time(),
+            "interval" => $interval,
+            "commandName" => $commandName,
+            "argv" => $argv,
+            "resumeOnError" => $resumeOnError
+        ];
     }
 
 }
