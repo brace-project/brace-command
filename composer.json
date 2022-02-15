@@ -27,7 +27,7 @@
         ]
     },
     "bin": [
-        "bin/brace.php"
+        "bin/brace"
     ],
     "autoload-dev": {
         "psr-4": {
