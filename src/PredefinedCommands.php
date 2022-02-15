@@ -21,8 +21,16 @@ class PredefinedCommands extends Command
         while(true) {;
             sleep(1);
             foreach ($command->interval as $key => $interval) {
-                if (time() < $interval["lastRun"] + $interval["interval"])
-                    continue;
+                if ($interval["interval"] instanceof CronFmt) {
+                    if (time() < $interval["lastRun"] + 60)
+                        continue;
+                    if ( ! $interval["interval"]->matches())
+                        continue;
+                } else {
+                    if (time() < $interval["lastRun"] + $interval["interval"])
+                        continue;
+                }
+
 
                 $command->interval[$key]["lastRun"] = time();
 

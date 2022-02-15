@@ -69,6 +69,7 @@ class Command
         return null;
     }
 
+    
 
     protected $interval = [];
 
@@ -78,12 +79,23 @@ class Command
      *
      * brace scheduler must be executed
      *
+     * Parameter 1 might be specified in cron format
+     * <minutes> <hour> <dayofmonth> <dayofweek> <month>
+     *
+     * Example
+     *   '* * * * *' Will run every minute
+     *   '5 * * * *' Will run each our at 5 Minutes past 
+     *
+     *
      * @param string $commandName
      * @param bool $resumeOnError
      * @return void
      */
-    public function addInterval(int $interval, string $commandName, array $argv=[], bool $resumeOnError = false)
+    public function addInterval(int|string $interval, string $commandName, array $argv=[], bool $resumeOnError = false)
     {
+        if (is_string($interval))
+            $interval = new CronFmt($interval);
+        
         if ( ! isset($this->commands[$commandName]))
             throw new \InvalidArgumentException("No command with commandName '$commandName' defined");
         $this->interval[] = [

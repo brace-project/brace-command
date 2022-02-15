@@ -17,6 +17,13 @@ $app->command->addCommand("command1", function() {
 
 // Execute command1 every 5 seconds
 $app->command->addInterval(5, "command1");
+
+// Support Cron format
+$app->command->addInterval("* * * * *", "command1");
+
+// Execut once per hour
+$app->command->addInterval("5 * * * *", "command1");
+$app->command->addInterval("5,10,15,20 * * * *", "command1");
 ```
 
 ## Run the Scheduler
