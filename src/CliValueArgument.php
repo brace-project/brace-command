@@ -12,7 +12,7 @@ class CliValueArgument implements CliArgumentInterface
     ){}
 
 
-    public function parseVal(array &$argv): bool|string
+    public function parseVal(array &$argv): null|bool|array|string
     {
 
         $val = null;
