@@ -79,13 +79,13 @@ class Command
         echo "Commands:" . PHP_EOL . PHP_EOL;
 
         foreach ($this->commands as $cmdName => $command) {
-            echo "  " . str_pad($cmdName . ":", 26, " ") . " {$command["desc"]}" . PHP_EOL;
+            echo "  " . str_pad($cmdName . "", 26, " ") . " {$command["desc"]}" . PHP_EOL;
             foreach ($command["arguments"] as $argument) {
                 /* @var CliValueArgument|CliBoolArgument $argument */
                 if ($argument instanceof CliValueArgument)
-                    echo "    " . str_pad($argument->name . " <val>:", 25, " ") . ": {$argument->desc}" . PHP_EOL;
+                    echo "    " . str_pad($argument->name . " <val>", 25, " ") . "{$argument->desc}" . PHP_EOL;
                 else
-                    echo "    " . str_pad($argument->name . ":", 25, " ") . ": {$argument->desc}" . PHP_EOL;
+                    echo "    " . str_pad($argument->name . "", 25, " ") . "{$argument->desc}" . PHP_EOL;
             }
             echo  PHP_EOL;
         }

@@ -7,8 +7,8 @@ class CliValueArgument implements CliArgumentInterface
 {
     public function __construct(
         public string $name,
+        public string $desc = "<no description>",
         public bool $array = false,
-        public string $desc = "<no description>"
     ){}
 
 
