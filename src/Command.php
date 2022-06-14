@@ -26,7 +26,7 @@ class Command
      * @param CliBoolArgument[]|CliValueArgument[]
      * @return void
      */
-    public function addCommand(string $commandName, callable $fn, string $desc = "<no description>", array $arguments = [])
+    public function addCommand(string $commandName, callable|array $fn, string $desc = "<no description>", array $arguments = [])
     {
         if (isset ($this->commands[$commandName]))
             throw new \InvalidArgumentException("Command '$commandName' is already defined");
@@ -63,7 +63,7 @@ class Command
                     continue;
                 $arguments[] = $att;
             }
-            $this->addCommand($cmd->name, [$classString, $method], $cmd->desc, $arguments);
+            $this->addCommand($cmd->name, [$classString, $method->getName()], $cmd->desc, $arguments);
         }
 
 
@@ -115,7 +115,7 @@ class Command
             $callback = $this->commands[$commandName]["fn"];
             if (is_array($callback)) {
                 $obj = phore_di_instantiate($callback[0], $this->app);
-                $callback = [$obj, $callback[1]];
+                $callback = \Closure::fromCallable([$obj, $callback[1]]);
             }
 
             $paramArgs = [];
