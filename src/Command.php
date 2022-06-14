@@ -11,8 +11,8 @@ class Command
     public function __construct(
         protected BraceApp $app
     ){
-        $this->commands["help"] = fn() => PredefinedCommands::PrintHelp();
-        $this->commands["scheduler"] = fn() => PredefinedCommands::Scheduler($app, $this);
+        $this->addCommand("help", fn() => $this->printHelp(), "Print Help");
+        $this->addCommand("scheduler", fn() => PredefinedCommands::Scheduler($app, $this), "Run the scheduler");
     }
 
     /**
@@ -22,16 +22,74 @@ class Command
      *
      * @param string $commandName
      * @param callable $fn
+     * @param string $desc,
+     * @param CliBoolArgument[]|CliValueArgument[]
      * @return void
      */
-    public function addCommand(string $commandName, callable $fn)
+    public function addCommand(string $commandName, callable $fn, string $desc = "<no description>", array $arguments = [])
     {
         if (isset ($this->commands[$commandName]))
             throw new \InvalidArgumentException("Command '$commandName' is already defined");
         // Allow _-. in Names
         if ( ! ctype_alnum(str_replace(["_", "-", "."], '', $commandName)))
             throw new \InvalidArgumentException("Invalid Command name '$commandName' must be alphanumeric");
-        $this->commands[$commandName] = $fn;
+        $this->commands[$commandName] = [
+            "desc" => $desc,
+            "arguments" => $arguments,
+            "fn" => $fn
+        ];
+    }
+
+    /**
+     * Add a Class and parse Arguments of Methods
+     *
+     * @param class-string $classString
+     * @return void
+     */
+    public function addClass (string $classString) {
+
+        $reflection = new \ReflectionClass($classString);
+        foreach ($reflection->getMethods() as $method) {
+            $mAttr = $method->getAttributes(CliCmd::class);
+            if (count($mAttr) === 0)
+                continue;
+            /* @var $cmd CliCmd */
+            $cmd = $mAttr[0]->newInstance();
+
+            $arguments = [];
+            foreach ($method->getAttributes() as $attribute) {
+                $att = $attribute->newInstance();
+                if ( ! $att instanceof CliArgumentInterface)
+                    continue;
+                $arguments[] = $att;
+            }
+            $this->addCommand($cmd->name, [$classString, $method], $cmd->desc, $arguments);
+        }
+
+
+    }
+
+
+    public function printHelp()
+    {
+        echo "brace command line utility" . PHP_EOL;
+        echo "Usage:" . PHP_EOL. PHP_EOL;
+        echo "   brace <command> [arguments]:" . PHP_EOL;
+        echo "" . PHP_EOL;
+        echo "Commands:" . PHP_EOL . PHP_EOL;
+
+        foreach ($this->commands as $cmdName => $command) {
+            echo "  " . str_pad($cmdName . ":", 26, " ") . " {$command["desc"]}" . PHP_EOL;
+            foreach ($command["arguments"] as $argument) {
+                /* @var CliValueArgument|CliBoolArgument $argument */
+                if ($argument instanceof CliValueArgument)
+                    echo "    " . str_pad($argument->name . " <val>:", 25, " ") . ": {$argument->desc}" . PHP_EOL;
+                else
+                    echo "    " . str_pad($argument->name . ":", 25, " ") . ": {$argument->desc}" . PHP_EOL;
+            }
+            echo  PHP_EOL;
+        }
+
     }
 
     /**
@@ -45,6 +103,8 @@ class Command
      */
     public function runCommand(string $commandName, array $argv=[], bool $returnOutput=false) : string|null
     {
+
+
         if ( ! isset($this->commands[$commandName]))
             throw new \InvalidArgumentException("No command with commandName '$commandName' defined");
 
@@ -52,8 +112,22 @@ class Command
             if ($returnOutput)
                 ob_start();
 
-            phore_di_call($this->commands[$commandName], $this->app, [
-                "argv" => $argv
+            $callback = $this->commands[$commandName]["fn"];
+            if (is_array($callback)) {
+                $obj = phore_di_instantiate($callback[0], $this->app);
+                $callback = [$obj, $callback[1]];
+            }
+
+            $paramArgs = [];
+            foreach ($this->commands[$commandName]["arguments"] as $argument) {
+                if ( ! $argument instanceof CliArgumentInterface)
+                    throw new \InvalidArgumentException("Invalid argument: Must be instance of CliArgumentInterface");
+                $paramArgs[$argument->name] = $argument->parseVal($argv);
+            }
+
+            phore_di_call($callback, $this->app, [
+                "argv" => $argv,
+                "arguments" => $paramArgs
             ]);
 
             if ($returnOutput)

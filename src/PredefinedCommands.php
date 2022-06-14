@@ -6,13 +6,6 @@ use Brace\Core\BraceApp;
 
 class PredefinedCommands extends Command
 {
-    public static function PrintHelp() {
-        echo "\nBrace command tool";
-        echo "\nUsage:";
-        echo "\n    {$GLOBALS["argv"][0]} <command>";
-        echo "\n";
-        exit(1);
-    }
 
 
     public static function Scheduler(BraceApp $app, Command $command)
