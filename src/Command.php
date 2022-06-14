@@ -28,7 +28,8 @@ class Command
     {
         if (isset ($this->commands[$commandName]))
             throw new \InvalidArgumentException("Command '$commandName' is already defined");
-        if ( ! ctype_alnum($commandName))
+        // Allow _-. in Names
+        if ( ! ctype_alnum(str_replace(["_", "-", "."], '', $commandName)))
             throw new \InvalidArgumentException("Invalid Command name '$commandName' must be alphanumeric");
         $this->commands[$commandName] = $fn;
     }
@@ -69,7 +70,7 @@ class Command
         return null;
     }
 
-    
+
 
     protected $interval = [];
 
@@ -84,7 +85,7 @@ class Command
      *
      * Example
      *   '* * * * *' Will run every minute
-     *   '5 * * * *' Will run each our at 5 Minutes past 
+     *   '5 * * * *' Will run each our at 5 Minutes past
      *
      *
      * @param string $commandName
@@ -95,7 +96,7 @@ class Command
     {
         if (is_string($interval))
             $interval = new CronFmt($interval);
-        
+
         if ( ! isset($this->commands[$commandName]))
             throw new \InvalidArgumentException("No command with commandName '$commandName' defined");
         $this->interval[] = [
