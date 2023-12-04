@@ -2,6 +2,19 @@
 
 Offers `brace`-command on command line
 
+
+## Example
+
+```php
+ $app->command->addCommand("analyze", function (array $arguments = []) {
+
+    if ($arguments["--thread_id"] !== null) {
+        
+    }
+    
+}, "", [new CliValueArgument("--thread_id", "Thread ID to analyze")]);
+```
+
 ## Example
 
 Add this to `10_di.php`
