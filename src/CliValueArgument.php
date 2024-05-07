@@ -11,6 +11,10 @@ class CliValueArgument implements CliArgumentInterface
         public bool $array = false,
     ){}
 
+    public function getName(): string
+    {
+        return $this->name;
+    }
 
     public function parseVal(array &$argv): null|bool|array|string
     {

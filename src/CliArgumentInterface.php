@@ -7,4 +7,6 @@ interface CliArgumentInterface
 
     public function parseVal(array &$argv) : null|bool|array|string;
 
+    public function getName() : string;
+
 }

@@ -10,6 +10,11 @@ class CliBoolArgument implements CliArgumentInterface
         public string $desc = "<no description>"
     ){}
 
+    public function getName(): string
+    {
+        return $this->name;
+    }
+
     public function parseVal(array &$argv): null|bool|array|string
     {
         foreach ($argv as $index => $arg) {

@@ -8,6 +8,8 @@ class Command
 {
     protected $commands = [];
 
+    protected $globalArguments = [];
+
     public function __construct(
         protected BraceApp $app
     ){
@@ -40,6 +42,23 @@ class Command
         ];
     }
 
+    /**
+     * Add a global argument
+     *
+     * If parameter 2 is set, the function will be called with the parsed value before the command is executed.
+     *
+     * @param CliArgumentInterface $argument
+     * @param \Closure|null $fn function($parsedValue, BraceApp $app) : void
+     */
+    public function addGlobalArgument(CliArgumentInterface $argument, \Closure $fn=null)
+    {
+        $this->globalArguments[] = ["argument" => $argument, "fn" => $fn];
+    }
+
+    public function __getGlobalArguments() : array
+    {
+        return $this->globalArguments;
+    }
     /**
      * Add a Class and parse Arguments of Methods
      *
@@ -74,7 +93,18 @@ class Command
     {
         echo "brace command line utility" . PHP_EOL;
         echo "Usage:" . PHP_EOL. PHP_EOL;
-        echo "   brace <command> [arguments]:" . PHP_EOL;
+        echo "   brace [global arguments] <command> [arguments]:" . PHP_EOL;
+        echo  PHP_EOL;
+        echo "Global Arguments:" . PHP_EOL . PHP_EOL;
+        // Print alll global arguments
+        foreach ($this->globalArguments as $argument) {
+            $argument = $argument["argument"];
+            if ($argument instanceof CliValueArgument)
+                echo "    " . str_pad($argument->name . " <val>", 25, " ") . "{$argument->desc}" . PHP_EOL;
+            else
+                echo "    " . str_pad($argument->name . "", 25, " ") . "{$argument->desc}" . PHP_EOL;
+        }
+
         echo "" . PHP_EOL;
         echo "Commands:" . PHP_EOL . PHP_EOL;
 
