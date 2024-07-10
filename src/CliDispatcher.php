@@ -21,8 +21,7 @@ class CliDispatcher extends Command
             if (substr($arg, 0, 1) !== "-") {
                 break;
             }
-
-            echo "ARG: $arg\n";
+            
             $found = false;
             foreach ($command->__getGlobalArguments() as $globalArgument) {
                 $argument = $globalArgument["argument"];
