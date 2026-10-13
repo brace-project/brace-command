@@ -18,7 +18,7 @@ class CronFmt
             $now = time();
 
         $cronArr = explode(" ", $this->cronFmt);
-        $compare = [(int)date("i"), (int)date("G"), (int)date("j"), (int)date("n"), (int)date("w")];
+        $compare = [(int)date("i", $now), (int)date("G", $now), (int)date("j", $now), (int)date("w", $now), (int)date("n", $now)];
 
         $match = 0;
         foreach ($cronArr as $key => $val) {
